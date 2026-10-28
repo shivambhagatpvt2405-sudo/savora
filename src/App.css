@@ -1,0 +1,578 @@
+
+import { useMemo, useState } from "react";
+import productsData from "./products";
+import "./index.css";
+
+const categories = [
+  "Electronics",
+  "Home & Kitchen",
+  "Fashion",
+  "Beauty & Personal Care",
+  "Sports & Outdoors",
+];
+
+const imageSet = [
+  "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=85",
+  "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=85",
+  "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=800&q=85",
+  "https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=800&q=85",
+  "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=85",
+  "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=85",
+  "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=85",
+  "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=800&q=85",
+  "https://images.unsplash.com/photo-1526401485004-2aa7f3b8a0a1?auto=format&fit=crop&w=800&q=85",
+  "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=800&q=85",
+];
+
+const money = (amount) =>
+  new Intl.NumberFormat("en-IN", {
+    style: "currency",
+    currency: "INR",
+    maximumFractionDigits: 0,
+  }).format(Number(amount) || 0);
+
+function getFeaturedProducts() {
+  const source = Array.isArray(productsData) ? productsData : [];
+  const featured = [];
+
+  categories.forEach((category) => {
+    const matches = source
+      .filter((product) => product.category === category)
+      .slice(0, 2);
+
+    matches.forEach((product) => {
+      featured.push({
+        ...product,
+        image: imageSet[featured.length % imageSet.length],
+      });
+    });
+  });
+
+  return featured;
+}
+
+const featuredProducts = getFeaturedProducts();
+
+export default function App() {
+  const [search, setSearch] = useState("");
+  const [activeCategory, setActiveCategory] = useState("All");
+  const [mode, setMode] = useState("buyer");
+  const [loginOpen, setLoginOpen] = useState(false);
+  const [loginReason, setLoginReason] = useState("save products");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [loggedIn, setLoggedIn] = useState(false);
+  const [saved, setSaved] = useState([]);
+  const [notice, setNotice] = useState("");
+  const [selectedProduct, setSelectedProduct] = useState(null);
+
+  const visibleProducts = useMemo(() => {
+    return featuredProducts.filter((product) => {
+      const matchesCategory =
+        activeCategory === "All" ||
+        product.category === activeCategory;
+
+      const text =
+        `${product.name} ${product.brand} ${product.category}`.toLowerCase();
+
+      return matchesCategory && text.includes(search.toLowerCase());
+    });
+  }, [search, activeCategory]);
+
+  function requireLogin(reason) {
+    if (!loggedIn) {
+      setLoginReason(reason);
+      setLoginOpen(true);
+      return false;
+    }
+    return true;
+  }
+
+  function toggleSave(product) {
+    if (!requireLogin("save products")) return;
+
+    setSaved((previous) =>
+      previous.includes(product.id)
+        ? previous.filter((id) => id !== product.id)
+        : [...previous, product.id]
+    );
+    setNotice("Your wishlist has been updated.");
+  }
+
+  function handleLogin(event) {
+    event.preventDefault();
+
+    if (!email.trim() || !password.trim()) {
+      setNotice("Please enter your email and password.");
+      return;
+    }
+
+    setLoggedIn(true);
+    setLoginOpen(false);
+    setPassword("");
+    setNotice("Demo login successful! You can now save products.");
+  }
+
+  function handleBuy(product) {
+    if (!requireLogin("continue to buy")) return;
+
+    setSelectedProduct(null);
+    setNotice(
+      `Demo only: ${product.name} selected. No real purchase or payment was made.`
+    );
+  }
+
+  return (
+    <div className="savora">
+      <header className="topbar">
+        <a className="brand" href="#home" aria-label="Savora home">
+          <span className="brand-mark">S</span>
+          <span>savora<span className="brand-dot">.</span></span>
+        </a>
+
+        <nav className="nav-links">
+          <a href="#home">Home</a>
+          <a href="#products">Explore</a>
+          <a href="#how-it-works">How it works</a>
+        </nav>
+
+        <div className="header-actions">
+          <button
+            className="text-button"
+            onClick={() => {
+              if (requireLogin("view your wishlist")) {
+                setNotice(
+                  saved.length
+                    ? `You have ${saved.length} saved product(s).`
+                    : "Your wishlist is empty."
+                );
+              }
+            }}
+          >
+            ♡ <span>Saved {saved.length || ""}</span>
+          </button>
+
+          {loggedIn ? (
+            <button className="login-button" onClick={() => {
+              setLoggedIn(false);
+              setNotice("You have logged out.");
+            }}>
+              Log out
+            </button>
+          ) : (
+            <button
+              className="login-button"
+              onClick={() => {
+                setLoginReason("sign in");
+                setLoginOpen(true);
+              }}
+            >
+              Log in
+            </button>
+          )}
+        </div>
+      </header>
+
+      <main id="home">
+        <section className="hero">
+          <div className="hero-copy">
+            <div className="eyebrow">
+              <span className="eyebrow-dot" />
+              YOUR SMARTER WAY TO SHOP
+            </div>
+
+            <h1>
+              Less searching.
+              <br />
+              <span>More saving.</span>
+            </h1>
+
+            <p className="hero-description">
+              Discover great products, compare demo prices, and make
+              choices that fit your style and budget.
+            </p>
+
+            <div className="hero-actions">
+              <a className="primary-button" href="#products">
+                Explore products <span>↗</span>
+              </a>
+              <a className="secondary-button" href="#how-it-works">
+                How Savora works
+              </a>
+            </div>
+
+            <div className="hero-trust">
+              <span>✓</span> Browse freely, no account needed
+            </div>
+          </div>
+
+          <div className="hero-visual">
+            <div className="hero-glow" />
+            <div className="hero-card hero-card-main">
+              <img
+                src={imageSet[0]}
+                alt="Wireless headphones"
+              />
+              <div className="hero-product-info">
+                <span>FEATURED PICK</span>
+                <strong>Find your next favorite.</strong>
+                <small>Thoughtful picks. Smarter spending.</small>
+              </div>
+            </div>
+            <div className="floating-card floating-card-top">
+              <span className="floating-icon">↗</span>
+              <div>
+                <strong>Compare smarter</strong>
+                <small>Know your options</small>
+              </div>
+            </div>
+            <div className="floating-card floating-card-bottom">
+              <span className="floating-icon">₹</span>
+              <div>
+                <strong>Budget friendly</strong>
+                <small>Spend with purpose</small>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <section className="benefit-strip">
+          <div><span>✦</span> Curated product picks</div>
+          <div><span>↔</span> Easy price comparison</div>
+          <div><span>◎</span> Made for your budget</div>
+        </section>
+
+        <section className="products-section" id="products">
+          <div className="section-heading">
+            <div>
+              <div className="eyebrow">THE SAVORA EDIT</div>
+              <h2>Good finds. Better choices.</h2>
+              <p>Explore a handpicked selection across five categories.</p>
+            </div>
+            <span className="demo-label">DEMO PRODUCTS</span>
+          </div>
+
+          <div className="mode-row">
+            <div>
+              <strong>Choose your experience</strong>
+              <p>Switch between shopping and budget planning.</p>
+            </div>
+            <div className="mode-switch">
+              <button
+                className={mode === "buyer" ? "active" : ""}
+                onClick={() => setMode("buyer")}
+              >
+                🛍 Buyer
+              </button>
+              <button
+                className={mode === "student" ? "active" : ""}
+                onClick={() => setMode("student")}
+              >
+                ✦ Student
+              </button>
+            </div>
+          </div>
+
+          {mode === "student" && (
+            <div className="student-banner">
+              <div>
+                <span className="eyebrow">STUDENT MODE</span>
+                <h3>Shop with a plan.</h3>
+                <p>
+                  Compare your options before spending. Prices on this
+                  page are sample demo prices.
+                </p>
+              </div>
+              <span className="student-symbol">₹</span>
+            </div>
+          )}
+
+          <div className="search-row">
+            <label className="search-box">
+              <span>⌕</span>
+              <input
+                value={search}
+                onChange={(event) => setSearch(event.target.value)}
+                placeholder="Search products, brands..."
+                aria-label="Search products"
+              />
+              {search && (
+                <button onClick={() => setSearch("")} aria-label="Clear search">
+                  ×
+                </button>
+              )}
+            </label>
+            <span className="result-count">
+              {visibleProducts.length} products
+            </span>
+          </div>
+
+          <div className="category-list">
+            {["All", ...categories].map((category) => (
+              <button
+                key={category}
+                className={`category-chip ${
+                  activeCategory === category ? "selected" : ""
+                }`}
+                onClick={() => setActiveCategory(category)}
+              >
+                {category}
+              </button>
+            ))}
+          </div>
+
+          <div className="product-grid">
+            {visibleProducts.map((product) => {
+              const isSaved = saved.includes(product.id);
+
+              return (
+                <article className="product-card" key={product.id}>
+                  <button
+                    className={`save-button ${isSaved ? "is-saved" : ""}`}
+                    onClick={() => toggleSave(product)}
+                    aria-label={isSaved ? "Remove from wishlist" : "Save product"}
+                    title="Login required to save"
+                  >
+                    {isSaved ? "♥" : "♡"}
+                  </button>
+
+                  <button
+                    className="product-image-button"
+                    onClick={() => setSelectedProduct(product)}
+                    aria-label={`View ${product.name}`}
+                  >
+                    <img
+                      className="product-image"
+                      src={product.image}
+                      alt={product.name}
+                      loading="lazy"
+                      onError={(event) => {
+                        event.currentTarget.style.display = "none";
+                        event.currentTarget.parentElement.classList.add(
+                          "image-fallback"
+                        );
+                      }}
+                    />
+                    <span className="image-category">
+                      {product.category}
+                    </span>
+                  </button>
+
+                  <div className="product-details">
+                    <div className="product-brand">{product.brand}</div>
+                    <h3>{product.name}</h3>
+
+                    <div className="rating">
+                      <span>★</span> {product.rating || "4.5"}
+                      <small>
+                        ({product.reviewCount || 120} reviews)
+                      </small>
+                    </div>
+
+                    <div className="price-row">
+                      <strong>{money(product.price)}</strong>
+                      {product.originalPrice && (
+                        <del>{money(product.originalPrice)}</del>
+                      )}
+                    </div>
+
+                    <div className="product-actions">
+                      <button
+                        className="details-button"
+                        onClick={() => setSelectedProduct(product)}
+                      >
+                        Details
+                      </button>
+                      <button
+                        className="buy-button"
+                        onClick={() => handleBuy(product)}
+                      >
+                        Buy now ↗
+                      </button>
+                    </div>
+                  </div>
+                </article>
+              );
+            })}
+          </div>
+
+          {visibleProducts.length === 0 && (
+            <div className="empty-state">
+              <span>⌕</span>
+              <h3>No products found</h3>
+              <p>Try another search or choose a different category.</p>
+              <button
+                className="secondary-button"
+                onClick={() => {
+                  setSearch("");
+                  setActiveCategory("All");
+                }}
+              >
+                Clear filters
+              </button>
+            </div>
+          )}
+
+          <p className="demo-disclaimer">
+            Demo notice: prices, ratings, and product availability are
+            sample data and may not match any live store.
+          </p>
+        </section>
+
+        <section className="how-section" id="how-it-works">
+          <div className="eyebrow">SHOP WITH CLARITY</div>
+          <h2>A smarter way to find what you need.</h2>
+
+          <div className="how-grid">
+            <div className="how-card">
+              <span>01</span>
+              <h3>Discover</h3>
+              <p>Explore products from different categories without signing in.</p>
+            </div>
+            <div className="how-card">
+              <span>02</span>
+              <h3>Compare</h3>
+              <p>Review sample prices and decide what fits your budget.</p>
+            </div>
+            <div className="how-card">
+              <span>03</span>
+              <h3>Save your picks</h3>
+              <p>Sign in to save favorites and keep your wishlist together.</p>
+            </div>
+          </div>
+        </section>
+      </main>
+
+      <footer className="footer">
+        <a className="brand" href="#home">
+          <span className="brand-mark">S</span>
+          <span>savora<span className="brand-dot">.</span></span>
+        </a>
+        <p>Shop smarter. Spend with purpose.</p>
+        <small>© 2026 Savora · Student project demo</small>
+      </footer>
+
+      {notice && (
+        <div className="toast" role="status">
+          <span>{notice}</span>
+          <button onClick={() => setNotice("")} aria-label="Dismiss">
+            ×
+          </button>
+        </div>
+      )}
+
+      {loginOpen && (
+        <div
+          className="modal-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setLoginOpen(false);
+          }}
+        >
+          <section className="login-modal" aria-labelledby="login-title">
+            <button
+              className="modal-close"
+              onClick={() => setLoginOpen(false)}
+              aria-label="Close login"
+            >
+              ×
+            </button>
+
+            <div className="login-brand">
+              <span className="brand-mark">S</span>
+            </div>
+            <div className="eyebrow">WELCOME TO SAVORA</div>
+            <h2 id="login-title">Your picks, all in one place.</h2>
+            <p>
+              Sign in to {loginReason}. Browsing and searching are always free.
+            </p>
+
+            <form onSubmit={handleLogin}>
+              <label htmlFor="email">Email address</label>
+              <input
+                id="email"
+                type="email"
+                autoComplete="email"
+                placeholder="you@example.com"
+                value={email}
+                onChange={(event) => setEmail(event.target.value)}
+                required
+              />
+
+              <label htmlFor="password">Password</label>
+              <input
+                id="password"
+                type="password"
+                autoComplete="current-password"
+                placeholder="Enter any demo password"
+                value={password}
+                onChange={(event) => setPassword(event.target.value)}
+                required
+              />
+
+              <button className="primary-button login-submit" type="submit">
+                Continue <span>↗</span>
+              </button>
+            </form>
+
+            <div className="login-note">
+              DEMO LOGIN · Any valid email + any password
+            </div>
+            <p className="privacy-note">
+              Demo only: this form does not create a real account or send
+              your details to a server.
+            </p>
+          </section>
+        </div>
+      )}
+
+      {selectedProduct && (
+        <div
+          className="modal-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setSelectedProduct(null);
+          }}
+        >
+          <section className="detail-modal">
+            <button
+              className="modal-close"
+              onClick={() => setSelectedProduct(null)}
+              aria-label="Close details"
+            >
+              ×
+            </button>
+            <img
+              className="detail-image"
+              src={selectedProduct.image}
+              alt={selectedProduct.name}
+            />
+            <div className="eyebrow">{selectedProduct.category}</div>
+            <h2>{selectedProduct.name}</h2>
+            <p className="detail-brand">{selectedProduct.brand}</p>
+            <h3>{money(selectedProduct.price)}</h3>
+            <p>
+              {selectedProduct.description ||
+                "Explore this demo product and compare its sample price before making a decision."}
+            </p>
+            <div className="detail-actions">
+              <button
+                className="details-button"
+                onClick={() => toggleSave(selectedProduct)}
+              >
+                ♡ Save
+              </button>
+              <button
+                className="buy-button"
+                onClick={() => handleBuy(selectedProduct)}
+              >
+                Buy now ↗
+              </button>
+            </div>
+            <small className="detail-disclaimer">
+              Sample listing only. No live price verification or payment.
+            </small>
+          </section>
+        </div>
+      )}
+    </div>
+  );
+}
