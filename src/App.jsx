@@ -4,6 +4,7 @@ import productsData from "./products.js";
 import "./index.css";
 
 const categories = [
+  "All",
   "Electronics",
   "Home & Kitchen",
   "Fashion",
@@ -12,26 +13,16 @@ const categories = [
 ];
 
 const categoryImages = {
-  Electronics: [
-    "https://images.unsplash.com/photo-1505740420928-5e560c06d30e?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80",
-  ],
-  "Home & Kitchen": [
-    "https://images.unsplash.com/photo-1507473885765-e6ed057f782c?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1511920170033-f8396924c348?auto=format&fit=crop&w=800&q=80",
-  ],
-  Fashion: [
-    "https://images.unsplash.com/photo-1542291026-7eec264c27ff?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1553062407-98eeb64c6a62?auto=format&fit=crop&w=800&q=80",
-  ],
-  "Beauty & Personal Care": [
-    "https://images.unsplash.com/photo-1522335789203-aabd1fc54bc9?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1608248543803-ba4f8c70ae0b?auto=format&fit=crop&w=800&q=80",
-  ],
-  "Sports & Outdoors": [
-    "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=800&q=80",
-    "https://images.unsplash.com/photo-1602143407151-7111542de6e8?auto=format&fit=crop&w=800&q=80",
-  ],
+  Electronics:
+    "https://images.unsplash.com/photo-1498049794561-7780e7231661?auto=format&fit=crop&w=900&q=80",
+  "Home & Kitchen":
+    "https://images.unsplash.com/photo-1556911220-bff31c812dba?auto=format&fit=crop&w=900&q=80",
+  Fashion:
+    "https://images.unsplash.com/photo-1483985988355-763728e1935b?auto=format&fit=crop&w=900&q=80",
+  "Beauty & Personal Care":
+    "https://images.unsplash.com/photo-1596462502278-27bfdc403348?auto=format&fit=crop&w=900&q=80",
+  "Sports & Outdoors":
+    "https://images.unsplash.com/photo-1517836357463-d25dfeac3438?auto=format&fit=crop&w=900&q=80",
 };
 
 const money = (value) =>
@@ -41,686 +32,815 @@ const money = (value) =>
     maximumFractionDigits: 0,
   }).format(Number(value) || 0);
 
-const ratingOf = (product) => Number(product.rating) || 4.5;
-
-// Two products per category, with unique demo images.
-const featuredProducts = categories.flatMap((category) => {
-  const categoryProducts = productsData.filter(
-    (product) => product.category === category
-  );
-
-  return categoryProducts.slice(0, 2).map((product, index) => ({
-    ...product,
-    image:
-      categoryImages[category]?.[index] ||
-      "https://images.unsplash.com/photo-1523275335684-37898b6baf30?auto=format&fit=crop&w=800&q=80",
-  }));
-});
-
-// Clearly simulated price history. This is not real retailer history.
 function getDemoHistory(product) {
-  const current = Number(product.price) || 999;
-  const offsets = [1.24, 1.12, 1.19, 1.05, 1.14, 0.96, 1.08, 1];
-
-  return offsets.map((factor, index) => ({
-    label: ["Week 1", "Week 2", "Week 3", "Week 4", "Week 5", "Week 6", "Week 7", "Now"][index],
-    price: Math.max(1, Math.round(current * factor)),
+  const factors = [1.24, 1.12, 1.19, 1.05, 1.14, 0.96, 1.08, 1];
+  return factors.map((factor, index) => ({
+    label: ["W-7", "W-6", "W-5", "W-4", "W-3", "W-2", "W-1", "Now"][index],
+    price: Math.round(product.price * factor),
   }));
 }
 
 function PriceHistory({ product }) {
-  const history = useMemo(() => getDemoHistory(product), [product]);
-  const values = history.map((point) => point.price);
-  const min = Math.min(...values);
-  const max = Math.max(...values);
-  const range = max - min || 1;
-
+  const history = getDemoHistory(product);
+  const max = Math.max(...history.map((item) => item.price));
+  const min = Math.min(...history.map((item) => item.price));
   const points = history
-    .map((point, index) => {
-      const x = 12 + (index / (history.length - 1)) * 276;
-      const y = 108 - ((point.price - min) / range) * 78;
+    .map((item, index) => {
+      const x = 10 + index * 38;
+      const y = 88 - ((item.price - min) / (max - min || 1)) * 58;
       return `${x},${y}`;
     })
     .join(" ");
 
   return (
-    <div className="savora-history">
-      <div className="savora-history-heading">
+    <div className="history-card">
+      <div className="history-heading">
         <div>
-          <span className="savora-mini-label">DEMO PRICE TREND</span>
-          <h3>Price history</h3>
+          <span className="eyebrow">PRICE INSIGHT</span>
+          <h3>Price history preview</h3>
         </div>
-        <span className="savora-history-badge">Sample data</span>
+        <span className="demo-badge">SIMULATED</span>
       </div>
 
-      <div className="savora-history-stats">
-        <div>
-          <span>Sample low</span>
-          <strong>{money(min)}</strong>
+      <div className="chart-wrap">
+        <svg
+          viewBox="0 0 286 105"
+          className="history-chart"
+          role="img"
+          aria-label="Illustrative price history chart"
+        >
+          <defs>
+            <linearGradient id="historyFill" x1="0" y1="0" x2="0" y2="1">
+              <stop offset="0%" stopColor="#c3f36b" stopOpacity=".26" />
+              <stop offset="100%" stopColor="#c3f36b" stopOpacity="0" />
+            </linearGradient>
+          </defs>
+          {[24, 45, 66, 88].map((y) => (
+            <line
+              key={y}
+              x1="8"
+              y1={y}
+              x2="278"
+              y2={y}
+              stroke="currentColor"
+              opacity=".09"
+            />
+          ))}
+          <polygon
+            points={`10,100 ${points} 276,100`}
+            fill="url(#historyFill)"
+          />
+          <polyline
+            points={points}
+            fill="none"
+            stroke="#c3f36b"
+            strokeWidth="2.8"
+            strokeLinecap="round"
+            strokeLinejoin="round"
+          />
+          {history.map((item, index) => {
+            const x = 10 + index * 38;
+            const y = 88 - ((item.price - min) / (max - min || 1)) * 58;
+            return (
+              <circle
+                key={item.label}
+                cx={x}
+                cy={y}
+                r="3"
+                fill="#c3f36b"
+              />
+            );
+          })}
+        </svg>
+        <div className="chart-labels">
+          {history.map((item) => (
+            <span key={item.label}>{item.label}</span>
+          ))}
         </div>
+      </div>
+
+      <div className="history-stats">
         <div>
-          <span>Sample high</span>
-          <strong>{money(max)}</strong>
+          <span>Illustrative low</span>
+          <strong>{money(min)}</strong>
         </div>
         <div>
           <span>Current demo price</span>
           <strong>{money(product.price)}</strong>
         </div>
       </div>
-
-      <svg
-        className="savora-chart"
-        viewBox="0 0 300 125"
-        role="img"
-        aria-label="Illustrative sample price trend chart"
-      >
-        {[30, 55, 80, 108].map((y) => (
-          <line
-            key={y}
-            x1="8"
-            y1={y}
-            x2="292"
-            y2={y}
-            stroke="currentColor"
-            strokeOpacity="0.12"
-            strokeDasharray="4 4"
-          />
-        ))}
-        <polyline
-          points={points}
-          fill="none"
-          stroke="#a3e635"
-          strokeWidth="3"
-          strokeLinecap="round"
-          strokeLinejoin="round"
-        />
-        {history.map((point, index) => {
-          const x = 12 + (index / (history.length - 1)) * 276;
-          const y = 108 - ((point.price - min) / range) * 78;
-
-          return (
-            <circle
-              key={point.label}
-              cx={x}
-              cy={y}
-              r="3.5"
-              fill="#a3e635"
-            />
-          );
-        })}
-      </svg>
-
-      <p className="savora-history-note">
-        Illustrative values only. These are not verified Amazon, Flipkart,
-        or other retailer prices.
+      <p className="fine-print">
+        This chart uses generated sample values, not verified retailer history.
       </p>
     </div>
   );
 }
 
-export default function App() {
+function ProductCard({
+  product,
+  onDetails,
+  onCompare,
+  onSave,
+  saved,
+  comparing,
+  onBuy,
+}) {
+  const image = product.image || categoryImages[product.category];
+
+  return (
+    <article className="product-card">
+      <div className="product-image-wrap">
+        <img
+          className="product-image"
+          src={image}
+          alt={product.name}
+          loading="lazy"
+        />
+        <span className="product-category">{product.category}</span>
+        <button
+          className={`heart-button ${saved ? "is-saved" : ""}`}
+          onClick={() => onSave(product)}
+          aria-label={saved ? "Remove from wishlist" : "Add to wishlist"}
+          title={saved ? "Remove from wishlist" : "Save to wishlist"}
+        >
+          {saved ? "♥" : "♡"}
+        </button>
+      </div>
+
+      <div className="product-content">
+        <div className="product-brand">{product.brand}</div>
+        <h3>{product.name}</h3>
+        <div className="product-rating">
+          <span>★</span> {product.rating || "New"}
+          <span className="review-count">
+            ({product.reviewCount ?? 0} reviews)
+          </span>
+        </div>
+
+        <div className="product-price-row">
+          <strong className="product-price">{money(product.price)}</strong>
+          <span className="demo-badge">DEMO</span>
+        </div>
+
+        <p className="product-description">
+          {product.description || "Explore this demo catalog listing."}
+        </p>
+
+        <div className="product-actions">
+          <button className="button button-secondary" onClick={() => onDetails(product)}>
+            Details
+          </button>
+          <button
+            className={`button ${comparing ? "button-selected" : "button-secondary"}`}
+            onClick={() => onCompare(product)}
+          >
+            {comparing ? "✓ Added" : "⇄ Compare"}
+          </button>
+        </div>
+
+        <button className="button button-primary buy-button" onClick={() => onBuy(product)}>
+          Find online <span>↗</span>
+        </button>
+      </div>
+    </article>
+  );
+}
+
+function App() {
   const [search, setSearch] = useState("");
   const [category, setCategory] = useState("All");
   const [sortBy, setSortBy] = useState("featured");
   const [mode, setMode] = useState("buyer");
-
-  const [budget, setBudget] = useState(3000);
-  const [spent, setSpent] = useState(0);
-
+  const [budget, setBudget] = useState("3000");
+  const [spent, setSpent] = useState("0");
   const [compareIds, setCompareIds] = useState([]);
-  const [saved, setSaved] = useState([]);
+  const [savedIds, setSavedIds] = useState([]);
   const [loggedIn, setLoggedIn] = useState(false);
-
   const [loginOpen, setLoginOpen] = useState(false);
-  const [loginReason, setLoginReason] = useState("save products");
+  const [loginReason, setLoginReason] = useState("");
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
-
   const [selectedProduct, setSelectedProduct] = useState(null);
   const [notice, setNotice] = useState("");
+  const [wishlistOnly, setWishlistOnly] = useState(false);
+  const [mobileMenu, setMobileMenu] = useState(false);
+
+  const showNotice = (message) => {
+    setNotice(message);
+    window.clearTimeout(showNotice.timeout);
+    showNotice.timeout = window.setTimeout(() => setNotice(""), 3000);
+  };
 
   const visibleProducts = useMemo(() => {
-    const filtered = featuredProducts.filter((product) => {
+    let result = productsData.filter((product) => {
       const matchesCategory =
         category === "All" || product.category === category;
+      const query = search.trim().toLowerCase();
+      const matchesSearch =
+        !query ||
+        [product.name, product.brand, product.category, product.description]
+          .filter(Boolean)
+          .some((value) => value.toLowerCase().includes(query));
+      const matchesWishlist = !wishlistOnly || savedIds.includes(product.id);
 
-      const searchable =
-        `${product.name} ${product.brand || ""} ${product.category}`.toLowerCase();
-
-      return matchesCategory && searchable.includes(search.toLowerCase());
+      return matchesCategory && matchesSearch && matchesWishlist;
     });
 
-    return [...filtered].sort((a, b) => {
-      if (sortBy === "price-low") return Number(a.price) - Number(b.price);
-      if (sortBy === "price-high") return Number(b.price) - Number(a.price);
-      if (sortBy === "rating") return ratingOf(b) - ratingOf(a);
-      return 0;
-    });
-  }, [search, category, sortBy]);
+    if (sortBy === "price-low") result.sort((a, b) => a.price - b.price);
+    if (sortBy === "price-high") result.sort((a, b) => b.price - a.price);
+    if (sortBy === "rating") result.sort((a, b) => b.rating - a.rating);
+    if (sortBy === "name") result.sort((a, b) => a.name.localeCompare(b.name));
 
-  const comparedProducts = compareIds
-    .map((id) => featuredProducts.find((product) => product.id === id))
-    .filter(Boolean);
+    return result;
+  }, [category, search, sortBy, wishlistOnly, savedIds]);
 
-  const lowestComparedPrice =
-    comparedProducts.length > 0
-      ? Math.min(...comparedProducts.map((product) => Number(product.price) || 0))
-      : null;
+  const comparedProducts = productsData.filter((product) =>
+    compareIds.includes(product.id)
+  );
 
-  const remaining = budget - spent;
-  const progress =
-    budget > 0 ? Math.min(100, (spent / budget) * 100) : 0;
+  const totalSpent = Math.max(0, Number(spent) || 0);
+  const totalBudget = Math.max(0, Number(budget) || 0);
+  const remaining = totalBudget - totalSpent;
+  const budgetPercent =
+    totalBudget > 0 ? Math.min(100, (totalSpent / totalBudget) * 100) : 0;
 
-  function requireLogin(reason) {
+  const requireLogin = (reason) => {
     if (loggedIn) return true;
-
     setLoginReason(reason);
     setLoginOpen(true);
     return false;
-  }
+  };
 
-  function handleLogin(event) {
+  const toggleSave = (product) => {
+    if (!requireLogin("Save products to your wishlist")) return;
+
+    setSavedIds((current) =>
+      current.includes(product.id)
+        ? current.filter((id) => id !== product.id)
+        : [...current, product.id]
+    );
+    showNotice(
+      savedIds.includes(product.id)
+        ? "Removed from your wishlist"
+        : "Added to your wishlist"
+    );
+  };
+
+  const toggleCompare = (product) => {
+    setCompareIds((current) => {
+      if (current.includes(product.id)) {
+        return current.filter((id) => id !== product.id);
+      }
+      if (current.length >= 3) {
+        showNotice("Compare up to 3 products at a time.");
+        return current;
+      }
+      return [...current, product.id];
+    });
+  };
+
+  const handleBuy = (product) => {
+    const url =
+      product.buyUrl ||
+      `https://www.amazon.in/s?k=${encodeURIComponent(product.name)}`;
+    window.open(url, "_blank", "noopener,noreferrer");
+    showNotice("Opening a retailer search for this demo product.");
+  };
+
+  const handleLogin = (event) => {
     event.preventDefault();
-
     if (!email.trim() || !password.trim()) {
-      setNotice("Please enter your email and password.");
+      showNotice("Enter an email and password to continue.");
       return;
     }
-
     setLoggedIn(true);
     setLoginOpen(false);
     setPassword("");
-    setNotice("Demo login successful!");
-  }
+    showNotice("Demo session started. No account was created.");
+  };
 
-  function toggleSave(product) {
-    if (!requireLogin("save products")) return;
-
-    const exists = saved.includes(product.id);
-
-    setSaved((previous) =>
-      exists
-        ? previous.filter((id) => id !== product.id)
-        : [...previous, product.id]
-    );
-
-    setNotice(exists ? "Product removed from saved items." : "Product saved!");
-  }
-
-  function toggleCompare(product) {
-    setCompareIds((previous) => {
-      if (previous.includes(product.id)) {
-        return previous.filter((id) => id !== product.id);
-      }
-
-      if (previous.length >= 2) {
-        setNotice("Compare up to two products at a time.");
-        return previous;
-      }
-
-      return [...previous, product.id];
-    });
-  }
-
-  function buyProduct(product) {
-    if (!requireLogin("continue to buy")) return;
-
-    setNotice(
-      `Demo only: ${product.name} selected. No payment was made.`
-    );
-  }
-
-  function resetFilters() {
-    setSearch("");
-    setCategory("All");
-    setSortBy("featured");
-  }
+  const featuredCategories = Object.keys(categoryImages);
 
   return (
-    <div className="savora" id="home">
-      <header className="topbar">
-        <a className="brand" href="#home">
-          <span className="brand-mark">S</span>
-          <span>savora<span className="brand-dot">.</span></span>
+    <div className="app-shell">
+      <div className="announcement-bar">
+        <span className="announcement-dot" />
+        Your smarter shopping companion
+        <span className="announcement-divider">·</span>
+        Demo experience
+      </div>
+
+      <header className="site-header">
+        <a className="brand" href="#home" aria-label="Savora home">
+          <span className="brand-mark">s</span>
+          <span>savora<span className="brand-period">.</span></span>
         </a>
 
-        <nav className="nav-links">
-          <a href="#home">Home</a>
-          <a href="#products">Explore</a>
-          <a href="#how">How it works</a>
+        <button
+          className="mobile-menu-button"
+          onClick={() => setMobileMenu((open) => !open)}
+          aria-label="Toggle navigation"
+        >
+          {mobileMenu ? "✕" : "☰"}
+        </button>
+
+        <nav className={`main-nav ${mobileMenu ? "nav-open" : ""}`}>
+          <a href="#home" onClick={() => setMobileMenu(false)}>Home</a>
+          <a href="#explore" onClick={() => setMobileMenu(false)}>Explore</a>
+          <a href="#how" onClick={() => setMobileMenu(false)}>How it works</a>
+          <a href="#budget" onClick={() => { setMode("student"); setMobileMenu(false); }}>Budget planner</a>
         </nav>
 
         <div className="header-actions">
           <button
-            className="text-button"
+            className="header-wishlist"
             onClick={() => {
-              if (!requireLogin("view your saved products")) return;
-              setNotice(`You have ${saved.length} saved product(s).`);
+              if (!requireLogin("Open your wishlist")) return;
+              setWishlistOnly((value) => !value);
+              document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" });
             }}
           >
-            ♡ Saved {saved.length || ""}
+            <span>♡</span> Wishlist
+            {savedIds.length > 0 && <span className="wishlist-count">{savedIds.length}</span>}
           </button>
-
           {loggedIn ? (
-            <button
-              className="login-button"
-              onClick={() => {
-                setLoggedIn(false);
-                setNotice("Logged out.");
-              }}
-            >
-              Log out
+            <button className="button button-secondary header-cta" onClick={() => {
+              setLoggedIn(false);
+              setWishlistOnly(false);
+              showNotice("Demo session ended.");
+            }}>
+              Sign out
             </button>
           ) : (
-            <button
-              className="login-button"
-              onClick={() => {
-                setLoginReason("sign in");
-                setLoginOpen(true);
-              }}
-            >
-              Log in
+            <button className="button button-primary header-cta" onClick={() => {
+              setLoginReason("Try the Savora demo account");
+              setLoginOpen(true);
+            }}>
+              Get started <span>↗</span>
             </button>
           )}
         </div>
       </header>
 
       <main>
-        <section className="hero">
+        <section className="hero section-container" id="home">
           <div className="hero-copy">
-            <div className="eyebrow">
-              <span className="eyebrow-dot" />
+            <div className="hero-kicker">
+              <span className="sparkle">✳</span>
               YOUR SMARTER WAY TO SHOP
             </div>
-
             <h1>
               Less searching.
               <br />
               <span>More saving.</span>
             </h1>
-
             <p className="hero-description">
-              Discover great products, compare prices and make smarter
-              choices that fit your style and budget.
+              Discover products, compare your options, and plan your spending.
+              Make every purchase feel like a smarter decision.
             </p>
 
             <div className="hero-actions">
-              <a className="primary-button" href="#products">
-                Explore products ↗
+              <a className="button button-primary button-large" href="#explore">
+                Explore products <span>↗</span>
               </a>
-              <a className="secondary-button" href="#how">
-                How it works
+              <a className="button button-ghost button-large" href="#how">
+                Discover Savora <span>↓</span>
               </a>
             </div>
 
-            <div className="hero-trust">
-              <span>✓</span> Browse freely. No account needed.
+            <div className="hero-social-proof">
+              <div className="avatar-stack" aria-hidden="true">
+                <span>S</span><span>✦</span><span>✓</span>
+              </div>
+              <div>
+                <strong>Shop with intention.</strong>
+                <span>Compare clearly. Spend confidently.</span>
+              </div>
             </div>
           </div>
 
           <div className="hero-visual">
-            <div className="hero-glow" />
-            <div className="hero-card">
-              <img src={categoryImages.Electronics[0]} alt="Featured headphones" />
-              <div className="hero-product-info">
-                <span>FEATURED PICK</span>
-                <strong>Find your next favorite.</strong>
-                <small>Thoughtful picks. Smarter spending.</small>
+            <div className="hero-image-frame">
+              <img
+                src="https://images.unsplash.com/photo-1556742049-0cfed4f6a45d?auto=format&fit=crop&w=1200&q=85"
+                alt="Shopping and payment experience"
+              />
+              <div className="image-shade" />
+              <div className="hero-image-label">
+                <span className="label-icon">✳</span>
+                <div>
+                  <strong>Spend with purpose</strong>
+                  <span>Your choices, your budget.</span>
+                </div>
+              </div>
+              <div className="floating-price-card">
+                <span className="floating-card-icon">↗</span>
+                <div>
+                  <span>THE SAVORA WAY</span>
+                  <strong>Know before you buy.</strong>
+                </div>
               </div>
             </div>
-
-            <div className="floating-card floating-top">
-              <span className="floating-icon">↗</span>
-              <div>
-                <strong>Compare smarter</strong>
-                <small>Know your options</small>
-              </div>
-            </div>
-
-            <div className="floating-card floating-bottom">
-              <span className="floating-icon">₹</span>
-              <div>
-                <strong>Budget friendly</strong>
-                <small>Shop with purpose</small>
-              </div>
-            </div>
+            <div className="hero-orbit orbit-one" />
+            <div className="hero-orbit orbit-two" />
           </div>
         </section>
 
-        <section className="benefit-strip">
-          <div>✦ Curated product picks</div>
-          <div>↔ Easy price comparison</div>
-          <div>◎ Budget-friendly planning</div>
+        <section className="benefit-strip section-container">
+          <div className="benefit-item">
+            <span className="benefit-icon">⌕</span>
+            <div><strong>Discover</strong><span>Find your next favorite</span></div>
+          </div>
+          <div className="benefit-item">
+            <span className="benefit-icon">⇄</span>
+            <div><strong>Compare</strong><span>See options side by side</span></div>
+          </div>
+          <div className="benefit-item">
+            <span className="benefit-icon">◎</span>
+            <div><strong>Plan</strong><span>Keep spending in view</span></div>
+          </div>
+          <div className="benefit-item">
+            <span className="benefit-icon">↗</span>
+            <div><strong>Choose</strong><span>Shop with more confidence</span></div>
+          </div>
         </section>
 
-        <section className="products-section" id="products">
+        <section className="category-section section-container">
           <div className="section-heading">
             <div>
-              <div className="eyebrow">THE SAVORA EDIT</div>
-              <h2>Good finds. Better choices.</h2>
-              <p>Explore two sample products from each category.</p>
+              <span className="eyebrow">A LITTLE OF EVERYTHING</span>
+              <h2>Find your <span>kind of good.</span></h2>
             </div>
-            <span className="demo-label">DEMO PRODUCTS</span>
+            <a href="#explore" className="text-link">Explore all products ↗</a>
           </div>
 
-          <div className="mode-row">
-            <div>
-              <strong>Choose your experience</strong>
-              <p>Switch between shopping and student planning.</p>
-            </div>
-            <div className="mode-switch">
+          <div className="category-grid">
+            {featuredCategories.map((item, index) => (
               <button
-                className={mode === "buyer" ? "active" : ""}
-                onClick={() => setMode("buyer")}
+                key={item}
+                className={`category-tile category-tile-${index + 1}`}
+                onClick={() => {
+                  setCategory(item);
+                  setWishlistOnly(false);
+                  document.getElementById("explore")?.scrollIntoView({ behavior: "smooth" });
+                }}
               >
-                🛍 Buyer
+                <img src={categoryImages[item]} alt="" loading="lazy" />
+                <span className="category-overlay" />
+                <span className="category-tile-text">
+                  <span className="category-number">0{index + 1}</span>
+                  <strong>{item}</strong>
+                  <span className="category-discover">Explore category ↗</span>
+                </span>
               </button>
-              <button
-                className={mode === "student" ? "active" : ""}
-                onClick={() => setMode("student")}
-              >
-                ✦ Student
-              </button>
-            </div>
+            ))}
           </div>
+        </section>
 
-          {mode === "student" && (
-            <div className="student-banner">
-              <div>
-                <div className="eyebrow">STUDENT MODE</div>
-                <h3>Shop with a plan.</h3>
-                <p>
-                  Plan your spending and compare options. Prices are sample data.
-                </p>
+        <section className="mode-section section-container">
+          <div className="mode-copy">
+            <span className="eyebrow">MADE FOR YOUR REAL LIFE</span>
+            <h2>What’s your <span>shopping style?</span></h2>
+            <p>
+              Whether you're comparing your next purchase or making your
+              monthly money stretch, Savora helps you start with a plan.
+            </p>
+          </div>
+          <div className="mode-cards">
+            <button
+              className={`mode-card ${mode === "buyer" ? "mode-card-active" : ""}`}
+              onClick={() => setMode("buyer")}
+            >
+              <span className="mode-card-icon">⌕</span>
+              <span className="mode-card-label">FOR EVERY SHOPPER</span>
+              <strong>Smart buyer</strong>
+              <span>Explore products and compare options.</span>
+              <span className="mode-card-arrow">↗</span>
+            </button>
+            <button
+              className={`mode-card ${mode === "student" ? "mode-card-active" : ""}`}
+              onClick={() => setMode("student")}
+            >
+              <span className="mode-card-icon">◷</span>
+              <span className="mode-card-label">FOR BUDGET MINDS</span>
+              <strong>Student mode</strong>
+              <span>Track spending and plan what comes next.</span>
+              <span className="mode-card-arrow">↗</span>
+            </button>
+          </div>
+        </section>
+
+        {mode === "student" && (
+          <section className="budget-section section-container" id="budget">
+            <div className="budget-intro">
+              <span className="eyebrow">YOUR MONEY, YOUR RULES</span>
+              <h2>A budget that <span>gets you.</span></h2>
+              <p>
+                Set a limit, track what you've spent, and see what's left
+                before making your next move.
+              </p>
+              <div className="budget-note">
+                <span>✳</span> Your budget stays in this demo session.
               </div>
-              <span className="student-symbol">₹</span>
             </div>
-          )}
 
-          <section className="budget-planner">
-            <div className="budget-heading">
-              <div>
-                <div className="eyebrow">YOUR MONEY, YOUR PLAN</div>
-                <h3>Smart Budget Planner</h3>
-                <p>Know how much you can still spend.</p>
+            <div className="budget-panel">
+              <div className="budget-panel-top">
+                <div>
+                  <span className="eyebrow">MONTHLY SNAPSHOT</span>
+                  <h3>Your spending plan</h3>
+                </div>
+                <span className="budget-status">{remaining >= 0 ? "ON YOUR WAY" : "OVER BUDGET"}</span>
               </div>
-              <span className="budget-icon">₹</span>
-            </div>
 
-            <div className="budget-inputs">
-              <label>
-                Total budget (₹)
+              <label className="field-label" htmlFor="budget-input">Your budget (₹)</label>
+              <div className="budget-input-wrap">
+                <span>₹</span>
                 <input
+                  id="budget-input"
                   type="number"
                   min="0"
                   value={budget}
-                  onChange={(event) =>
-                    setBudget(Math.max(0, Number(event.target.value) || 0))
-                  }
+                  onChange={(event) => setBudget(event.target.value)}
                 />
-              </label>
+              </div>
 
-              <label>
-                Already spent (₹)
+              <label className="field-label" htmlFor="spent-input">Amount already spent (₹)</label>
+              <div className="budget-input-wrap">
+                <span>₹</span>
                 <input
+                  id="spent-input"
                   type="number"
                   min="0"
                   value={spent}
-                  onChange={(event) =>
-                    setSpent(Math.max(0, Number(event.target.value) || 0))
-                  }
+                  onChange={(event) => setSpent(event.target.value)}
                 />
-              </label>
-            </div>
-
-            <div className="budget-summary">
-              <div>
-                <span>Total budget</span>
-                <strong>{money(budget)}</strong>
               </div>
-              <div>
-                <span>Already spent</span>
-                <strong>{money(spent)}</strong>
-              </div>
-              <div>
-                <span>Remaining</span>
-                <strong className={remaining < 0 ? "over-budget" : "remaining"}>
-                  {money(remaining)}
-                </strong>
-              </div>
-            </div>
 
-            <div className="budget-progress" role="progressbar" aria-valuemin={0} aria-valuemax={100} aria-valuenow={progress}>
-              <div style={{ width: `${progress}%` }} />
-            </div>
+              <div className="budget-progress-heading">
+                <span>Budget used</span><strong>{budgetPercent.toFixed(0)}%</strong>
+              </div>
+              <div
+                className="budget-progress-track"
+                role="progressbar"
+                aria-valuenow={budgetPercent}
+                aria-valuemin="0"
+                aria-valuemax="100"
+              >
+                <div className="budget-progress-fill" style={{ width: `${budgetPercent}%` }} />
+              </div>
 
-            <p className="budget-message">
-              {remaining < 0
-                ? "You are over budget. Consider reducing spending."
-                : budget === 0
-                  ? "Enter a budget to start planning."
-                  : `You have ${money(remaining)} left to spend.`}
-            </p>
+              <div className="budget-summary">
+                <div>
+                  <span>Spent</span>
+                  <strong>{money(totalSpent)}</strong>
+                </div>
+                <div>
+                  <span>{remaining >= 0 ? "Still available" : "Over budget by"}</span>
+                  <strong className={remaining < 0 ? "negative-value" : "positive-value"}>
+                    {money(Math.abs(remaining))}
+                  </strong>
+                </div>
+              </div>
+
+              <a className="button button-primary budget-explore" href="#explore">
+                Browse within your budget ↗
+              </a>
+            </div>
           </section>
+        )}
 
-          <div className="search-row">
-            <label className="search-box">
+        <section className="products-section section-container" id="explore">
+          <div className="section-heading products-heading">
+            <div>
+              <span className="eyebrow">THE DISCOVERY EDIT</span>
+              <h2>Good finds. <span>Better choices.</span></h2>
+              <p className="section-subtitle">
+                Explore our sample catalog and compare products your way.
+              </p>
+            </div>
+            <div className="catalog-count">
+              <strong>{visibleProducts.length}</strong>
+              <span>{wishlistOnly ? "saved items" : "demo listings"}</span>
+            </div>
+          </div>
+
+          <div className="catalog-toolbar">
+            <div className="search-box">
               <span>⌕</span>
               <input
+                type="search"
+                placeholder="Search products, brands, categories..."
                 value={search}
                 onChange={(event) => setSearch(event.target.value)}
-                placeholder="Search products or brands..."
                 aria-label="Search products"
               />
-              {search && <button onClick={() => setSearch("")}>×</button>}
+              {search && (
+                <button onClick={() => setSearch("")} aria-label="Clear search">✕</button>
+              )}
+            </div>
+            <label className="sort-control">
+              <span>Sort by</span>
+              <select value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
+                <option value="featured">Featured</option>
+                <option value="price-low">Price: low to high</option>
+                <option value="price-high">Price: high to low</option>
+                <option value="rating">Top rated</option>
+                <option value="name">Name: A to Z</option>
+              </select>
             </label>
-            <span className="result-count">{visibleProducts.length} products</span>
           </div>
 
-          <div className="sort-row">
-            <label htmlFor="product-sort">Sort products</label>
-            <select id="product-sort" value={sortBy} onChange={(event) => setSortBy(event.target.value)}>
-              <option value="featured">Featured</option>
-              <option value="price-low">Price: Low to High</option>
-              <option value="price-high">Price: High to Low</option>
-              <option value="rating">Highest Rated</option>
-            </select>
-          </div>
-
-          <div className="category-list">
-            {["All", ...categories].map((item) => (
+          <div className="category-filters">
+            {categories.map((item) => (
               <button
                 key={item}
-                className={`category-chip ${category === item ? "selected" : ""}`}
-                onClick={() => setCategory(item)}
+                className={`filter-chip ${category === item ? "filter-chip-active" : ""}`}
+                onClick={() => {
+                  setCategory(item);
+                  setWishlistOnly(false);
+                }}
               >
                 {item}
               </button>
             ))}
+            {wishlistOnly && (
+              <button className="filter-chip clear-filter" onClick={() => setWishlistOnly(false)}>
+                ✕ Clear wishlist filter
+              </button>
+            )}
           </div>
 
-          <div className="product-grid">
-            {visibleProducts.map((product) => (
-              <article className="product-card" key={product.id}>
-                <button
-                  className={`save-button ${saved.includes(product.id) ? "is-saved" : ""}`}
-                  onClick={() => toggleSave(product)}
-                  aria-label="Save product"
-                >
-                  {saved.includes(product.id) ? "♥" : "♡"}
-                </button>
-
-                <button className="product-image-button" onClick={() => setSelectedProduct(product)}>
-                  <img className="product-image" src={product.image} alt={product.name} loading="lazy" />
-                  <span className="image-category">{product.category}</span>
-                </button>
-
-                <div className="product-details">
-                  <div className="product-brand">{product.brand || "Savora pick"}</div>
-                  <h3>{product.name}</h3>
-
-                  <div className="rating">
-                    <span>★</span> {ratingOf(product).toFixed(1)}
-                    <small>({product.reviewCount || 0} reviews)</small>
-                  </div>
-
-                  <div className="price-row">
-                    <strong>{money(product.price)}</strong>
-                    <span className="demo-price-tag">DEMO</span>
-                  </div>
-
-                  <div className="product-actions">
-                    <button className="details-button" onClick={() => setSelectedProduct(product)}>
-                      Details
-                    </button>
-                    <button
-                      className={`details-button ${compareIds.includes(product.id) ? "compare-selected" : ""}`}
-                      onClick={() => toggleCompare(product)}
-                    >
-                      {compareIds.includes(product.id) ? "✓ Selected" : "⇄ Compare"}
-                    </button>
-                    <button className="buy-button" onClick={() => buyProduct(product)}>
-                      Buy now ↗
-                    </button>
-                  </div>
-                </div>
-              </article>
-            ))}
-          </div>
-
-          {visibleProducts.length === 0 && (
+          {visibleProducts.length > 0 ? (
+            <div className="product-grid">
+              {visibleProducts.map((product) => (
+                <ProductCard
+                  key={product.id}
+                  product={product}
+                  onDetails={setSelectedProduct}
+                  onCompare={toggleCompare}
+                  onSave={toggleSave}
+                  saved={savedIds.includes(product.id)}
+                  comparing={compareIds.includes(product.id)}
+                  onBuy={handleBuy}
+                />
+              ))}
+            </div>
+          ) : (
             <div className="empty-state">
+              <span>⌕</span>
               <h3>No products found</h3>
-              <p>Try another search or category.</p>
-              <button className="secondary-button" onClick={resetFilters}>
-                Clear filters
+              <p>Try another search or choose a different category.</p>
+              <button
+                className="button button-primary"
+                onClick={() => {
+                  setSearch("");
+                  setCategory("All");
+                  setWishlistOnly(false);
+                }}
+              >
+                Reset filters
               </button>
             </div>
           )}
-
-          {compareIds.length > 0 && (
-            <section className="comparison-section">
-              <div className="comparison-heading">
-                <div>
-                  <div className="eyebrow">SIDE BY SIDE</div>
-                  <h3>Compare products</h3>
-                  <p>Select up to two products.</p>
-                </div>
-                <button className="details-button" onClick={() => setCompareIds([])}>
-                  Clear comparison
-                </button>
-              </div>
-
-              {compareIds.length < 2 && (
-                <p className="comparison-hint">Select one more product to compare.</p>
-              )}
-
-              <div className="comparison-grid">
-                {comparedProducts.map((product) => {
-                  const isLowest = Number(product.price) === lowestComparedPrice;
-
-                  return (
-                    <article className={`comparison-card ${isLowest && comparedProducts.length === 2 ? "comparison-best" : ""}`} key={product.id}>
-                      <img src={product.image} alt={product.name} />
-                      <h4>{product.name}</h4>
-                      <p>{product.brand || "Savora pick"}</p>
-
-                      {isLowest && comparedProducts.length === 2 && (
-                        <span className="best-price-label">Lowest demo price</span>
-                      )}
-
-                      <div className="comparison-value">
-                        <span>Price</span>
-                        <strong className={isLowest && comparedProducts.length === 2 ? "lowest-price" : ""}>
-                          {money(product.price)}
-                        </strong>
-                      </div>
-
-                      <div className="comparison-value">
-                        <span>Rating</span>
-                        <strong>★ {ratingOf(product).toFixed(1)}</strong>
-                      </div>
-
-                      <div className="comparison-value">
-                        <span>Category</span>
-                        <strong>{product.category}</strong>
-                      </div>
-
-                      <button className="details-button" onClick={() => setSelectedProduct(product)}>
-                        View details
-                      </button>
-                      <button
-                        className="details-button"
-                        onClick={() => setCompareIds((previous) => previous.filter((id) => id !== product.id))}
-                      >
-                        Remove
-                      </button>
-                    </article>
-                  );
-                })}
-              </div>
-            </section>
-          )}
-
-          <p className="demo-disclaimer">
-            Demo notice: prices, ratings, and chart history are sample data, not live store information.
-          </p>
         </section>
 
-        <section className="how-section" id="how">
-          <div className="eyebrow">SHOP WITH CLARITY</div>
-          <h2>A smarter way to find what you need.</h2>
+        {comparedProducts.length > 0 && (
+          <section className="compare-section section-container" id="compare">
+            <div className="section-heading">
+              <div>
+                <span className="eyebrow">SIDE-BY-SIDE</span>
+                <h2>Make the <span>comparison.</span></h2>
+              </div>
+              <button className="text-link-button" onClick={() => setCompareIds([])}>
+                Clear comparison ✕
+              </button>
+            </div>
+            <p className="section-subtitle">
+              Compare up to three sample listings. Prices are demonstration values.
+            </p>
+            <div className="compare-table-wrap">
+              <table className="compare-table">
+                <thead>
+                  <tr>
+                    <th>Product</th>
+                    {comparedProducts.map((product) => (
+                      <th key={product.id}>
+                        <button
+                          className="compare-remove"
+                          onClick={() => toggleCompare(product)}
+                          aria-label={`Remove ${product.name}`}
+                        >
+                          ✕
+                        </button>
+                        <img
+                          src={product.image || categoryImages[product.category]}
+                          alt=""
+                        />
+                        <strong>{product.name}</strong>
+                      </th>
+                    ))}
+                  </tr>
+                </thead>
+                <tbody>
+                  <tr>
+                    <td>Demo price</td>
+                    {comparedProducts.map((product) => (
+                      <td key={product.id} className="compare-price">{money(product.price)}</td>
+                    ))}
+                  </tr>
+                  <tr>
+                    <td>Category</td>
+                    {comparedProducts.map((product) => <td key={product.id}>{product.category}</td>)}
+                  </tr>
+                  <tr>
+                    <td>Rating</td>
+                    {comparedProducts.map((product) => <td key={product.id}>★ {product.rating}</td>)}
+                  </tr>
+                  <tr>
+                    <td>Brand</td>
+                    {comparedProducts.map((product) => <td key={product.id}>{product.brand}</td>)}
+                  </tr>
+                </tbody>
+              </table>
+            </div>
+          </section>
+        )}
+
+        <section className="how-section section-container" id="how">
+          <div className="how-heading">
+            <span className="eyebrow">SIMPLE BY DESIGN</span>
+            <h2>Three steps to <span>shop smarter.</span></h2>
+            <p>Less clutter. More clarity. Decisions that feel right for you.</p>
+          </div>
           <div className="how-grid">
             <article className="how-card">
-              <span>01</span>
+              <span className="how-number">01</span>
+              <span className="how-icon">⌕</span>
               <h3>Discover</h3>
-              <p>Browse products without creating an account.</p>
+              <p>Search a sample catalog and browse the categories that interest you.</p>
             </article>
             <article className="how-card">
-              <span>02</span>
+              <span className="how-number">02</span>
+              <span className="how-icon">⇄</span>
               <h3>Compare</h3>
-              <p>Compare sample prices and ratings side by side.</p>
+              <p>Put products side by side and review their demo prices and details.</p>
             </article>
             <article className="how-card">
-              <span>03</span>
-              <h3>Save your picks</h3>
-              <p>Sign in to save favorites to your wishlist.</p>
+              <span className="how-number">03</span>
+              <span className="how-icon">◎</span>
+              <h3>Plan your spend</h3>
+              <p>Set a budget and keep track of how much you want to spend.</p>
             </article>
           </div>
         </section>
+
+        <section className="closing-cta section-container">
+          <div>
+            <span className="eyebrow">YOUR NEXT SMART MOVE</span>
+            <h2>Shop your way.<br /><span>Stay in control.</span></h2>
+          </div>
+          <a className="button button-primary button-large" href="#explore">
+            Start exploring <span>↗</span>
+          </a>
+          <div className="closing-decoration">s.</div>
+        </section>
       </main>
 
-      <footer className="footer">
-        <a className="brand" href="#home">
-          <span className="brand-mark">S</span>
-          <span>savora<span className="brand-dot">.</span></span>
-        </a>
-        <p>Shop smarter. Spend with purpose.</p>
-        <small>© 2026 Savora · Student project demo</small>
+      <footer className="site-footer section-container">
+        <div className="footer-top">
+          <a className="brand footer-brand" href="#home">
+            <span className="brand-mark">s</span><span>savora<span className="brand-period">.</span></span>
+          </a>
+          <p>Shop smarter. Spend with purpose.</p>
+          <a href="#home" className="back-top">Back to top ↑</a>
+        </div>
+        <div className="footer-bottom">
+          <span>© {new Date().getFullYear()} Savora. Student demo project.</span>
+          <span>Sample catalog · No verified live pricing</span>
+        </div>
       </footer>
 
-      {notice && (
-        <div className="toast" role="status">
-          <span>{notice}</span>
-          <button onClick={() => setNotice("")} aria-label="Dismiss">×</button>
-        </div>
-      )}
+      {notice && <div className="toast-message" role="status">{notice}</div>}
 
       {loginOpen && (
-        <div className="modal-backdrop" onMouseDown={(event) => {
-          if (event.target === event.currentTarget) setLoginOpen(false);
-        }}>
-          <section className="login-modal">
-            <button className="modal-close" onClick={() => setLoginOpen(false)} aria-label="Close login">×</button>
-            <div className="login-brand"><span className="brand-mark">S</span></div>
-            <div className="eyebrow">WELCOME TO SAVORA</div>
-            <h2>Your picks, all in one place.</h2>
-            <p>Sign in to {loginReason}. Browsing and searching are always free.</p>
-
+        <div
+          className="modal-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setLoginOpen(false);
+          }}
+        >
+          <section className="login-modal" role="dialog" aria-modal="true" aria-labelledby="login-title">
+            <button className="modal-close" onClick={() => setLoginOpen(false)} aria-label="Close">✕</button>
+            <span className="brand-mark modal-brand-mark">s</span>
+            <span className="eyebrow">WELCOME TO SAVORA</span>
+            <h2 id="login-title">Your smarter space.</h2>
+            <p>{loginReason || "Start your demo session to explore saved products."}</p>
             <form onSubmit={handleLogin}>
-              <label htmlFor="email">Email address</label>
+              <label className="field-label" htmlFor="login-email">Email address</label>
               <input
-                id="email"
+                className="form-input"
+                id="login-email"
                 type="email"
                 autoComplete="email"
                 placeholder="you@example.com"
@@ -728,10 +848,10 @@ export default function App() {
                 onChange={(event) => setEmail(event.target.value)}
                 required
               />
-
-              <label htmlFor="password">Password</label>
+              <label className="field-label" htmlFor="login-password">Password</label>
               <input
-                id="password"
+                className="form-input"
+                id="login-password"
                 type="password"
                 autoComplete="current-password"
                 placeholder="Enter any demo password"
@@ -739,71 +859,73 @@ export default function App() {
                 onChange={(event) => setPassword(event.target.value)}
                 required
               />
-
-              <button className="primary-button login-submit" type="submit">Continue ↗</button>
+              <button className="button button-primary login-submit" type="submit">
+                Continue to demo ↗
+              </button>
             </form>
-
-            <div className="login-note">DEMO LOGIN · Any valid email + any password</div>
-            <p className="privacy-note">Demo only. This form does not create a real account or send your details to a server.</p>
+            <p className="fine-print">
+              Demo only: this form does not create an account or send your details to a server.
+            </p>
           </section>
         </div>
       )}
 
       {selectedProduct && (
-        <div className="modal-backdrop" onMouseDown={(event) => {
-          if (event.target === event.currentTarget) setSelectedProduct(null);
-        }}>
-          <section className="detail-modal">
-            <button className="modal-close" onClick={() => setSelectedProduct(null)} aria-label="Close details">×</button>
+        <div
+          className="modal-backdrop"
+          onMouseDown={(event) => {
+            if (event.target === event.currentTarget) setSelectedProduct(null);
+          }}
+        >
+          <section className="detail-modal" role="dialog" aria-modal="true" aria-labelledby="detail-title">
+            <button className="modal-close" onClick={() => setSelectedProduct(null)} aria-label="Close">✕</button>
+            <div className="detail-layout">
+              <div className="detail-image-wrap">
+                <img
+                  className="detail-image"
+                  src={selectedProduct.image || categoryImages[selectedProduct.category]}
+                  alt={selectedProduct.name}
+                />
+              </div>
+              <div className="detail-copy">
+                <span className="eyebrow">{selectedProduct.category}</span>
+                <h2 id="detail-title">{selectedProduct.name}</h2>
+                <p className="detail-brand">{selectedProduct.brand}</p>
+                <div className="detail-price">{money(selectedProduct.price)} <span className="demo-badge">DEMO PRICE</span></div>
+                <p>{selectedProduct.longDescription || selectedProduct.description}</p>
+                <div className="detail-rating">★ {selectedProduct.rating} <span>·</span> {selectedProduct.reviewCount ?? 0} reviews</div>
 
-            <img className="detail-image" src={selectedProduct.image} alt={selectedProduct.name} />
-            <div className="eyebrow">{selectedProduct.category}</div>
-            <h2>{selectedProduct.name}</h2>
-            <p className="detail-brand">{selectedProduct.brand || "Savora pick"}</p>
-            <h3>{money(selectedProduct.price)}</h3>
-            <p>{selectedProduct.longDescription || selectedProduct.description || "Demo product listing."}</p>
-
-            {Array.isArray(selectedProduct.features) && selectedProduct.features.length > 0 && (
-              <div className="detail-features">
-                <h4>Product highlights</h4>
-                <ul>
-                  {selectedProduct.features.map((feature) => <li key={feature}>{feature}</li>)}
+                <h3>Highlights</h3>
+                <ul className="detail-features">
+                  {(selectedProduct.features || ["Demo catalog listing", "Check retailer for details"]).map((feature) => (
+                    <li key={feature}><span>✓</span>{feature}</li>
+                  ))}
                 </ul>
+
+                {selectedProduct.specifications && (
+                  <>
+                    <h3>Specifications</h3>
+                    <dl className="spec-list">
+                      {Object.entries(selectedProduct.specifications).map(([key, value]) => (
+                        <div key={key}>
+                          <dt>{key}</dt><dd>{String(value)}</dd>
+                        </div>
+                      ))}
+                    </dl>
+                  </>
+                )}
+
+                <button className="button button-primary detail-buy" onClick={() => handleBuy(selectedProduct)}>
+                  Find online <span>↗</span>
+                </button>
               </div>
-            )}
-
-            {selectedProduct.specifications && (
-              <div className="detail-specifications">
-                <h4>Specifications</h4>
-                {Object.entries(selectedProduct.specifications).map(([label, value]) => (
-                  <div className="comparison-value" key={label}>
-                    <span>{label}</span>
-                    <strong>{String(value)}</strong>
-                  </div>
-                ))}
-              </div>
-            )}
-
-            <PriceHistory product={selectedProduct} />
-
-            <div className="detail-actions">
-              <button className="details-button" onClick={() => toggleSave(selectedProduct)}>
-                {saved.includes(selectedProduct.id) ? "♥ Saved" : "♡ Save"}
-              </button>
-              <button className="details-button" onClick={() => toggleCompare(selectedProduct)}>
-                {compareIds.includes(selectedProduct.id) ? "✓ Compared" : "⇄ Compare"}
-              </button>
-              <button className="buy-button" onClick={() => buyProduct(selectedProduct)}>
-                Buy now ↗
-              </button>
             </div>
-
-            <small className="detail-disclaimer">
-              Sample listing only. No live price verification or payment.
-            </small>
+            <PriceHistory product={selectedProduct} />
           </section>
         </div>
       )}
     </div>
   );
 }
+
+export default App;
